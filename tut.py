@@ -10,6 +10,20 @@ env = gym.make("Taxi-v2")
 startstate = env.reset()
 
 
+def launchrandom():
+    timesteps = 0
+    reward = None
+    statehistory.append(startstate)
+    rewardhistory.append(0)
+    while reward != 20:
+        state, reward, done, info = env.step(env.action_space.sample())
+        timesteps += 1
+        statehistory.append(state)
+        rewardhistory.append(reward)
+    return timesteps
+
+
+
 def printrules():
     global env
     taxi = " "
@@ -57,7 +71,8 @@ def loop(direction):
         print('possible environment states: {}.  Current State = {}'.format(env.observation_space, startstate))
         print('possible actions: {} - North East South West Pickup DropOff'.format(env.action_space.n))
         print('use the keys N, E, S, W, P, D for the above actions')
-        print('enter the R key for the Rules')
+        print('enter the H key for help')
+        print('enter the R key to launch a random AI taxi')
         # North = Up = 1, East = Right = 2, South = Down = 0, West = Left = 3, Pickup = 4, DropOff = 5
         print('Current reward = {}'.format(G))
         env.render()
@@ -69,20 +84,35 @@ def loop(direction):
             "w": 3,
             "p": 4,
             "d": 5,
-            "r": 6
+            "h": 6,
+            "r": 7
         }
 
         step = switch.get(direction.lower(), "Invalid")
 
         if step is not "Invalid":
             if step is not 6:
-                print('Moving the Taxi {}'.format(direction))
+                if step == 5:
+                    print("Dropping off!")
+                elif step == 4:
+                    print("Picking up!")
+                elif step == 7:
+                    # Launch and AI randomized Taxi
+                    timesteps -= 1  # don't count this as a move
+                    aisteps = launchrandom()
+                    print("AI taxi took {} steps to complete the episode".format(aisteps))
+                    complete = True
+                    print(rewardhistory)
+
+                    getInput()
+                else:
+                    print('Moving the Taxi {}'.format(direction))
                 state, reward, done, info =  env.step(step)
                 G += reward
                 statehistory.append(state)
                 rewardhistory.append(reward)
                 print("Action reward = {}".format(reward))
-                print("Episode reward = {}".format(G))
+                print("Episode cumulative reward = {}".format(G))
                 print("New state = {}".format(state))
                 print("Timesteps = {}".format(timesteps))
                 if done:
